@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
+using System.Net.Http.Headers;
 
 namespace ObserverPattern
 {
     public interface IObserver
     {
-        // receive an update from the subject
+        // receive an update from the subject, and notify the subscriber
         void Update(ISubject subject);
     }
 
@@ -19,6 +21,12 @@ namespace ObserverPattern
         void Notify();
     }
 
+    public interface ISubscriber
+    {
+        // Notify the subscriber
+        void Notify();
+    }
+
     /// <summary>
     /// This is our Store class that implements ISubject that we want to subscribe to notifications
     /// </summary>
@@ -26,7 +34,7 @@ namespace ObserverPattern
     {
         public int inventoryCount = 0;
         public List<string> inventory = new List<string>();
-        private List<IObserver> observers = new List<IObserver>();
+        private readonly List<IObserver> observers = new List<IObserver>();
 
         /// <summary>
         /// This adds a new product to the store
@@ -64,17 +72,43 @@ namespace ObserverPattern
     /// <summary>
     /// This is the observer that will attach the the Store class for updates to it's inventory
     /// </summary>
-    class StoreAssistant : IObserver
+    public class StoreAssistant : IObserver
     {
+        readonly string product;
+        readonly ISubscriber customer;
+        public StoreAssistant(string productInterest, ISubscriber subscriber)
+        {
+            product = productInterest;
+            this.customer = subscriber;
+        }
         public void Update(ISubject subject)
         {
-            if ((subject as Store).inventoryCount > 3)
+            if ((subject as Store).inventory.Contains(product))
             {
                 Console.WriteLine("StoreAssistant: Reacted to an event.");
+                customer.Notify();
+
             }
         }
     }
 
+    public class Customer : ISubscriber
+    {
+        public string Mobile { get; set; }
+        public string ProductInterest { get; set; }
+
+        public void Notify()
+        {
+            Console.WriteLine(string.Format("Sending notification to {0} that the new {1} is now available", Mobile, ProductInterest));
+        }
+
+        public void SubscribeForNotification(Store store, string product)
+        {
+            // Instantiate our assistant to monitor the store for changes
+            StoreAssistant assistant = new StoreAssistant(product, this);
+            store.Attach(assistant);
+        }
+    }
     class Program
     {
         static void Main(string[] args)
@@ -88,10 +122,16 @@ namespace ObserverPattern
             store.inventory.Add("iPhone 11 Pro");
             store.inventoryCount += 1;
 
-            // Instantiate our assistant to monitor the store for changes
-            StoreAssistant assistant = new StoreAssistant();
-            store.Attach(assistant);
-            store.Add("iPhone SE (2020)");
+            // Here comes our first customer
+            Customer customer = new Customer();
+            Console.Write("What product are you intereted in? ");
+            customer.ProductInterest = Console.ReadLine();
+            Console.Write(string.Format("Enter your mobile and we will let you know when the {0} becomes available: ", customer.ProductInterest));
+            customer.Mobile = Console.ReadLine();
+            customer.SubscribeForNotification(store, customer.ProductInterest);
+
+            // The customers product becomes available in the store
+            store.Add(customer.ProductInterest);
             Console.ReadLine();
         }
     }
