@@ -9,7 +9,7 @@ namespace ObserverPattern
 {
     public interface IObserver
     {
-        // receive an update from the store
+        // process an update from the store
         void Update(string model);
     }
 
@@ -35,7 +35,7 @@ namespace ObserverPattern
     public class Store : ISubject
     {
         public List<string> inventory = new List<string>();
-        private readonly List<IObserver> observers = new List<IObserver>();
+        private List<IObserver> observers = new List<IObserver>();
 
         public Store()
         {
