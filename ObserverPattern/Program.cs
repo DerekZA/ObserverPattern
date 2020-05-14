@@ -35,7 +35,7 @@ namespace ObserverPattern
     public class Store : ISubject
     {
         public List<string> inventory = new List<string>();
-        private List<IObserver> observers = new List<IObserver>();
+        private readonly List<IObserver> observers = new List<IObserver>();
 
         public Store()
         {
@@ -82,11 +82,11 @@ namespace ObserverPattern
     public class StoreAssistant : IObserver
     {
         readonly string product;
-        readonly ISubscriber customer;
-        public StoreAssistant(string productInterest, ISubscriber subscriber)
+        readonly ISubscriber subscriber;
+        public StoreAssistant(string productInterest, ISubscriber customer)
         {
             product = productInterest;
-            customer = subscriber;
+            subscriber = customer;
         }
 
         public void Update(string model)
@@ -94,20 +94,20 @@ namespace ObserverPattern
             if (model == product)
             {
                 Console.WriteLine(string.Format("StoreAssistant: Reacted to {0} being added to the store.", model));
-                customer.Notify();
+                subscriber.Notify();
             }
         }
     }
 
     public class Customer : ISubscriber
     {
-        public string Mobile { get; set; }
+        public string Name { get; set; }
         public string ProductInterest { get; set; }
 
         public void Notify()
         {
             // Here we implement logic to notify our customer
-            Console.WriteLine(string.Format("Sending notification to {0} that the new {1} is now available", Mobile, ProductInterest));
+            Console.WriteLine(string.Format("Hi {0}, the new {1} is now available", Name, ProductInterest));
         }
 
         public void SubscribeForNotification(Store store, string product)
@@ -126,11 +126,10 @@ namespace ObserverPattern
 
             // Here comes our first customer
             Customer customer = new Customer();
+            Console.Write("Enter your name? ");
+            customer.Name = Console.ReadLine();
             Console.Write("What product are you intereted in? ");
             customer.ProductInterest = Console.ReadLine();
-            Console.Write(string.Format("Enter your email to be notified when {0} becomes available: ", customer.ProductInterest));
-            customer.Mobile = Console.ReadLine();
-
             customer.SubscribeForNotification(store, customer.ProductInterest);
 
             // The customers product becomes available in the store
