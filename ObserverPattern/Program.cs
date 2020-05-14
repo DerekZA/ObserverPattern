@@ -1,24 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Dynamic;
+using System.Linq;
 using System.Net.Http.Headers;
 
 namespace ObserverPattern
 {
     public interface IObserver
     {
-        // receive an update from the subject, and notify the subscriber
-        void Update(ISubject subject);
+        // receive an update from the store
+        void Update(string model);
     }
 
     public interface ISubject
     {
-        // Attach an observer to the subject
+        // Attach an observer to the Store
         void Attach(IObserver observer);
-        // Detach an observer from the subject
+        // Detach an observer from the Store
         void Detach(IObserver observer);
-        // Notifiy all observers there was a change
-        void Notify();
+        // Notifiy all observers there is a new product in the Store
+        void Notify(string product);
     }
 
     public interface ISubscriber
@@ -32,45 +34,50 @@ namespace ObserverPattern
     /// </summary>
     public class Store : ISubject
     {
-        public int inventoryCount = 0;
         public List<string> inventory = new List<string>();
         private readonly List<IObserver> observers = new List<IObserver>();
+
+        public Store()
+        {
+            inventory.Add("iPhone X");
+            inventory.Add("iPhone 11");
+            inventory.Add("iPhone 11 Pro");
+        }
 
         /// <summary>
         /// This adds a new product to the store
         /// </summary>
         /// <param name="product"></param>
-        public void Add(string product)
+        public void AddProduct(string product)
         {
             inventory.Add(product);
             Console.WriteLine(string.Format("{0} has been added to the store", product));
-            inventoryCount += 1;
-            Notify();
+            Notify(product);
         }
         public void Attach(IObserver observer)
         {
-            Console.WriteLine("Subject: Attached an observer");
+            Console.WriteLine("Store: Attached an observer");
             observers.Add(observer);
         }
 
         public void Detach(IObserver observer)
         {
             observers.Remove(observer);
-            Console.WriteLine("Subject: Detached an observer");
+            Console.WriteLine("Store: Detached an observer");
         }
 
-        public void Notify()
+        public void Notify(string product)
         {
             Console.WriteLine("Notifying all observers...");
             foreach (var observer in observers)
             {
-                observer.Update(this);
+                observer.Update(product);
             }
         }
     }
 
     /// <summary>
-    /// This is the observer that will attach the the Store class for updates to it's inventory
+    /// This is the observer class, it will attach to the Store class for updates to it's inventory
     /// </summary>
     public class StoreAssistant : IObserver
     {
@@ -79,15 +86,15 @@ namespace ObserverPattern
         public StoreAssistant(string productInterest, ISubscriber subscriber)
         {
             product = productInterest;
-            this.customer = subscriber;
+            customer = subscriber;
         }
-        public void Update(ISubject subject)
-        {
-            if ((subject as Store).inventory.Contains(product))
-            {
-                Console.WriteLine("StoreAssistant: Reacted to an event.");
-                customer.Notify();
 
+        public void Update(string model)
+        {
+            if (model == product)
+            {
+                Console.WriteLine(string.Format("StoreAssistant: Reacted to {0} being added to the store.", model));
+                customer.Notify();
             }
         }
     }
@@ -99,6 +106,7 @@ namespace ObserverPattern
 
         public void Notify()
         {
+            // Here we implement logic to notify our customer
             Console.WriteLine(string.Format("Sending notification to {0} that the new {1} is now available", Mobile, ProductInterest));
         }
 
@@ -111,27 +119,22 @@ namespace ObserverPattern
     }
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             // Instantiate our store with some current inventory
             Store store = new Store();
-            store.inventory.Add("iPhone X");
-            store.inventoryCount += 1;
-            store.inventory.Add("iPhone 11");
-            store.inventoryCount += 1;
-            store.inventory.Add("iPhone 11 Pro");
-            store.inventoryCount += 1;
 
             // Here comes our first customer
             Customer customer = new Customer();
             Console.Write("What product are you intereted in? ");
             customer.ProductInterest = Console.ReadLine();
-            Console.Write(string.Format("Enter your mobile and we will let you know when the {0} becomes available: ", customer.ProductInterest));
+            Console.Write(string.Format("Enter your email to be notified when {0} becomes available: ", customer.ProductInterest));
             customer.Mobile = Console.ReadLine();
+
             customer.SubscribeForNotification(store, customer.ProductInterest);
 
             // The customers product becomes available in the store
-            store.Add(customer.ProductInterest);
+            store.AddProduct(customer.ProductInterest);
             Console.ReadLine();
         }
     }
