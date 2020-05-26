@@ -63,7 +63,7 @@ namespace ObserverPattern
         /// <param name="observer"></param>
         public void Attach(IObserver observer)
         {
-            Console.WriteLine("Store: Attached an observer");
+            Console.WriteLine("Store: Attached an observer (Store Assistant)");
             observers.Add(observer);
         }
 
@@ -83,7 +83,7 @@ namespace ObserverPattern
         /// <param name="product"></param>
         public void Notify(string product)
         {
-            Console.WriteLine("Notifying all observers...");
+            Console.WriteLine("Notifying all observers about updates to the Store's inventory...");
             foreach (var observer in observers)
             {
                 observer.Update(product);
@@ -96,12 +96,17 @@ namespace ObserverPattern
     /// </summary>
     public class StoreAssistant : IObserver
     {
+        readonly Store Store;
         readonly string product;
         readonly ISubscriber subscriber;
-        public StoreAssistant(string productInterest, ISubscriber customer)
+
+        public StoreAssistant(Store store, string productInterest, ISubscriber customer)
         {
             product = productInterest;
             subscriber = customer;
+            Store = store;
+
+            Store.Attach(this);
         }
 
         public void Update(string model)
@@ -130,9 +135,8 @@ namespace ObserverPattern
 
         public void SubscribeForNotification(Store store, string product)
         {
-            // Instantiate our assistant to monitor the store for changes
-            StoreAssistant assistant = new StoreAssistant(product, this);
-            store.Attach(assistant);
+            // Instantiate our assistant to monitor the store inventory for changes
+            _ = new StoreAssistant(store, product, this);
         }
     }
     class Program
@@ -148,7 +152,10 @@ namespace ObserverPattern
             customer.Name = Console.ReadLine();
             Console.Write("What product are you intereted in? ");
             customer.ProductInterest = Console.ReadLine();
+
+            //Subscribe the customer to notifications
             customer.SubscribeForNotification(store, customer.ProductInterest);
+            Console.ReadLine();
 
             // The customers product becomes available in the store
             store.AddProduct(customer.ProductInterest);
