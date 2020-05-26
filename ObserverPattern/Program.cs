@@ -96,7 +96,6 @@ namespace ObserverPattern
     /// </summary>
     public class StoreAssistant : IObserver
     {
-        readonly Store Store;
         readonly string product;
         readonly ISubscriber subscriber;
 
@@ -104,9 +103,7 @@ namespace ObserverPattern
         {
             product = productInterest;
             subscriber = customer;
-            Store = store;
-
-            Store.Attach(this);
+            store.Attach(this);
         }
 
         public void Update(string model)
