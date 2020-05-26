@@ -37,6 +37,9 @@ namespace ObserverPattern
         public List<string> inventory = new List<string>();
         private readonly List<IObserver> observers = new List<IObserver>();
 
+        /// <summary>
+        /// Default Constructor with dummy data
+        /// </summary>
         public Store()
         {
             inventory.Add("iPhone X");
@@ -54,18 +57,30 @@ namespace ObserverPattern
             Console.WriteLine(string.Format("{0} has been added to the store", product));
             Notify(product);
         }
+        /// <summary>
+        /// Implement Attach from ISubject interface
+        /// </summary>
+        /// <param name="observer"></param>
         public void Attach(IObserver observer)
         {
             Console.WriteLine("Store: Attached an observer");
             observers.Add(observer);
         }
 
+        /// <summary>
+        /// Implement Detach from ISubject interface
+        /// </summary>
+        /// <param name="observer"></param>
         public void Detach(IObserver observer)
         {
             observers.Remove(observer);
             Console.WriteLine("Store: Detached an observer");
         }
 
+        /// <summary>
+        /// Implement Notify from ISubject interface
+        /// </summary>
+        /// <param name="product"></param>
         public void Notify(string product)
         {
             Console.WriteLine("Notifying all observers...");
@@ -99,6 +114,9 @@ namespace ObserverPattern
         }
     }
 
+    /// <summary>
+    /// The customer class implements Subscriber interface
+    /// </summary>
     public class Customer : ISubscriber
     {
         public string Name { get; set; }
